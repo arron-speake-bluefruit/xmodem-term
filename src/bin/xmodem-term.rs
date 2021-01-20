@@ -1,6 +1,11 @@
-use std::fs::{OpenOptions, File};
+use std::{
+    fs::File
+};
 use clap::clap_app;
-use xmodem_term::xmodem::XModem;
+use xmodem_term::{
+    device::setup_device,
+    xmodem::XModem
+};
 
 fn main() -> Result<(), String> {
     let matches = clap_app!(app =>
@@ -20,11 +25,19 @@ fn main() -> Result<(), String> {
     let device_path = matches.value_of("device").unwrap();
     let file_path = matches.value_of("file").unwrap();
 
-    let device = serial::open(device_path)
-        .map_err(|e| format!("Failed to open device: {}.", e))?;
+    let device = setup_device(device_path)?;
 
     let file = File::open(file_path)
         .map_err(|e| format!("Failed to open file: {}.", e))?;
 
-    Ok(())
+    let xmodem = XModem::new(device);
+    match xmodem.send(file) {
+        Some(()) => {
+            println!("XModem transfer completed successfully.");
+            Ok(())
+        },
+        None => {
+            Err(String::from("The XModem transfer failed."))
+        },
+    }
 }
