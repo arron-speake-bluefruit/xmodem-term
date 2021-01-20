@@ -9,3 +9,4 @@ description = "A simple xmodem transmission client."
 
 [dependencies]
 clap = "2"
+serial = "0.4"

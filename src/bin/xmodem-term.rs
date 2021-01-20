@@ -1,5 +1,6 @@
 use std::fs::{OpenOptions, File};
 use clap::clap_app;
+use xmodem_term::xmodem::XModem;
 
 fn main() -> Result<(), String> {
     let matches = clap_app!(app =>
@@ -19,17 +20,11 @@ fn main() -> Result<(), String> {
     let device_path = matches.value_of("device").unwrap();
     let file_path = matches.value_of("file").unwrap();
 
-    let device = OpenOptions::new()
-        .write(true)
-        .read(true)
-        .open(device_path)
+    let device = serial::open(device_path)
         .map_err(|e| format!("Failed to open device: {}.", e))?;
 
     let file = File::open(file_path)
         .map_err(|e| format!("Failed to open file: {}.", e))?;
-
-    println!("Device: {:?}", device);
-    println!("File: {:?}", file);
 
     Ok(())
 }
