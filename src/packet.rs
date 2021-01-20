@@ -11,7 +11,7 @@ impl Packet {
     const START_OF_HEADER: u8 = 0x01;
     const END_OF_TRANSMISSION: u8 = 0x04;
     const END_OF_TRANSMISSION_BLOCK: u8 = 0x17;
-    const TERMINAL_PACKET : [u8; 1] = [Self::END_OF_TRANSMISSION];
+    const TERMINAL_PACKET: [u8; 1] = [Self::END_OF_TRANSMISSION];
 
     pub fn new(block_number: u8, payload: &[u8]) -> Self {
         assert!(payload.len() <= PAYLOAD_SIZE);
@@ -20,15 +20,15 @@ impl Packet {
         data[1] = block_number;
         data[2] = 255u8 - block_number;
         let mut checksum = 0u8;
-        for (datum, source) in data.iter_mut()
-            .skip(HEADER_SIZE)
-            .zip(payload) {
+        for (datum, source) in data.iter_mut().skip(HEADER_SIZE).zip(payload) {
             *datum = *source;
             checksum = checksum.wrapping_add(*datum);
         }
-        for padding in data.iter_mut()
+        for padding in data
+            .iter_mut()
             .skip(HEADER_SIZE + payload.len())
-            .take(PAYLOAD_SIZE - payload.len()) {
+            .take(PAYLOAD_SIZE - payload.len())
+        {
             *padding = Self::END_OF_TRANSMISSION_BLOCK;
             checksum = checksum.wrapping_add(*padding);
         }

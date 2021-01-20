@@ -1,9 +1,6 @@
 use super::packet::{Packet, PAYLOAD_SIZE};
 
-use std::{
-    fs::File,
-    io::Read,
-};
+use std::{fs::File, io::Read};
 
 pub struct XModemFileAdapter {
     file: File,
@@ -28,12 +25,7 @@ impl XModemFileAdapter {
         let result = self.file.read(&mut buffer);
         match result {
             Ok(0) => None,
-            Ok(bytes_read) => {
-                Some(Packet::new(
-                    self.block,
-                    &buffer[0..bytes_read],
-                ))
-            },
+            Ok(bytes_read) => Some(Packet::new(self.block, &buffer[0..bytes_read])),
             Err(_) => None,
         }
     }
@@ -43,14 +35,16 @@ impl Iterator for XModemFileAdapter {
     type Item = Packet;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.reached_eof { return None; }
+        if self.reached_eof {
+            return None;
+        }
 
         match self.get_next_packet() {
             Some(p) => Some(p),
             None => {
                 self.reached_eof = true;
                 Some(Packet::Terminal)
-            },
+            }
         }
     }
 }

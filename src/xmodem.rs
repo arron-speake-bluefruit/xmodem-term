@@ -1,14 +1,11 @@
 use std::{
-    io::{Read, Write},
     fs::File,
+    io::{Read, Write},
     thread::sleep,
-    time::{Instant, Duration},
+    time::{Duration, Instant},
 };
 
-use crate::{
-    packet::Packet,
-    xmodem_file_adapter::XModemFileAdapter,
-};
+use crate::{packet::Packet, xmodem_file_adapter::XModemFileAdapter};
 
 pub struct XModem {
     port: serial::SystemPort,
@@ -23,7 +20,7 @@ impl XModem {
         self.wait_for_negative_acknowledge()?;
         'a: for packet in XModemFileAdapter::new(file) {
             print!("Sending packet");
-            const MAX_ATTEMPTS : usize = 10;
+            const MAX_ATTEMPTS: usize = 10;
             for _ in 0..MAX_ATTEMPTS {
                 print!(".");
                 self.write(&packet)?;
@@ -40,17 +37,25 @@ impl XModem {
     }
 
     fn write(&mut self, packet: &Packet) -> Option<()> {
-        self.port.write_all(packet.data())
-            .map_err(|e| { println!("Write failed: {}", e); e })
+        self.port
+            .write_all(packet.data())
+            .map_err(|e| {
+                println!("Write failed: {}", e);
+                e
+            })
             .ok()
     }
 
     fn read(&mut self) -> Option<bool> {
-        const ACKNOWLEDGE : u8 = 0x06;
-        const NEGATIVE_ACKNOWLEDGE : u8 = 0x15;
+        const ACKNOWLEDGE: u8 = 0x06;
+        const NEGATIVE_ACKNOWLEDGE: u8 = 0x15;
         let mut read_buffer = [0u8; 1];
-        self.port.read_exact(&mut read_buffer)
-            .map_err(|e| { println!("Read failed: {}", e); e })
+        self.port
+            .read_exact(&mut read_buffer)
+            .map_err(|e| {
+                println!("Read failed: {}", e);
+                e
+            })
             .ok()?;
         match read_buffer[0] {
             ACKNOWLEDGE => Some(true),
@@ -60,13 +65,15 @@ impl XModem {
     }
 
     fn wait_for_response(&mut self) -> Option<bool> {
-        const TIMEOUT : Duration = Duration::from_secs(10);
-        const DELAY : Duration = Duration::from_millis(500);
+        const TIMEOUT: Duration = Duration::from_secs(10);
+        const DELAY: Duration = Duration::from_millis(500);
         let timeout_point = Instant::now() + TIMEOUT;
 
         while Instant::now() < timeout_point {
             let read = self.read();
-            if read.is_some() { return read; }
+            if read.is_some() {
+                return read;
+            }
             sleep(DELAY);
         }
 
