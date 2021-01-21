@@ -17,34 +17,30 @@ impl XModem {
     }
 
     pub fn send(mut self, file: File) -> Option<Duration> {
+        let progress = ProgressOutput::new("Transferring file");
         self.wait_for_negative_acknowledge()?;
         let start_time = Instant::now();
         'a: for packet in XModemFileAdapter::new(file) {
-            print!("Sending packet");
             const MAX_ATTEMPTS: usize = 10;
             for _ in 0..MAX_ATTEMPTS {
-                print!(".");
+                progress.update();
                 self.write(&packet)?;
                 let acknowledged = self.wait_for_response()?;
                 if acknowledged {
-                    println!("Done");
                     continue 'a;
                 }
             }
-            println!("Failed");
+            progress.fail();
             return None
         }
 
+        progress.succeed();
         Some(Instant::now() - start_time)
     }
 
     fn write(&mut self, packet: &Packet) -> Option<()> {
         self.port
             .write_all(packet.data())
-            .map_err(|e| {
-                println!("Write failed: {}", e);
-                e
-            })
             .ok()
     }
 
@@ -54,10 +50,6 @@ impl XModem {
         let mut read_buffer = [0u8; 1];
         self.port
             .read_exact(&mut read_buffer)
-            .map_err(|e| {
-                println!("Read failed: {}", e);
-                e
-            })
             .ok()?;
         match read_buffer[0] {
             ACKNOWLEDGE => Some(true),
@@ -87,5 +79,27 @@ impl XModem {
             false => Some(()),
             true => None,
         }
+    }
+}
+
+struct ProgressOutput;
+
+impl ProgressOutput {
+    pub fn new(start: &str) -> Self {
+        Self::print(start);
+        Self { }
+    }
+
+    pub fn update(&self) { Self::print(".") }
+    pub fn succeed(self) { Self::print(" Done.\n") }
+    pub fn fail(self) { Self::print(" Failed.\n") }
+
+    fn print(content: &str) {
+        print!("{}", content);
+        Self::flush();
+    }
+
+    fn flush() {
+        let _ = std::io::stdout().flush();
     }
 }
