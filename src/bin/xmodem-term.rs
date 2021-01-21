@@ -26,8 +26,9 @@ fn main() -> Result<(), String> {
 
     let xmodem = XModem::new(device);
     match xmodem.send(file) {
-        Some(()) => {
-            println!("XModem transfer completed successfully.");
+        Some(duration) => {
+            println!("XModem transfer completed successfully (Took {}ms since first NAK).",
+                duration.as_millis());
             Ok(())
         }
         None => Err(String::from("The XModem transfer failed.")),

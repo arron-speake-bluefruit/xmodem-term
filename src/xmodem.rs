@@ -16,8 +16,9 @@ impl XModem {
         Self { port }
     }
 
-    pub fn send(mut self, file: File) -> Option<()> {
+    pub fn send(mut self, file: File) -> Option<Duration> {
         self.wait_for_negative_acknowledge()?;
+        let start_time = Instant::now();
         'a: for packet in XModemFileAdapter::new(file) {
             print!("Sending packet");
             const MAX_ATTEMPTS: usize = 10;
@@ -31,9 +32,10 @@ impl XModem {
                 }
             }
             println!("Failed");
+            return None
         }
 
-        Some(())
+        Some(Instant::now() - start_time)
     }
 
     fn write(&mut self, packet: &Packet) -> Option<()> {
