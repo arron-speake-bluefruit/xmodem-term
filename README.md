@@ -1,4 +1,4 @@
-# xmodem-term
+# xmodem-term 0.2.0
 
 A simple xmodem transmission client.
 
