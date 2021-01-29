@@ -1,6 +1,6 @@
 [package]
 name = "xmodem-term"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Arron Speake <arron.speake@bluefruit.co.uk>"]
 edition = "2018"
 description = "A simple xmodem transmission client."
