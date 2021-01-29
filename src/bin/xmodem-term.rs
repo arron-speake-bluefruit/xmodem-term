@@ -53,6 +53,16 @@ fn get_stop_bits(name: &str) -> Result<StopBits, String> {
     }
 }
 
+fn get_flow_control(name: &str) -> Result<FlowControl, String> {
+    use FlowControl::*;
+    match name {
+        "hardware" => Ok(FlowHardware),
+        "none" => Ok(FlowNone),
+        "software" => Ok(FlowSoftware),
+        _ => Err(format!("Invalid stop bits of {}.", name)),
+    }
+}
+
 fn main() -> Result<(), String> {
     let matches = clap_app!(app =>
         (name: env!("CARGO_PKG_NAME"))
@@ -91,7 +101,7 @@ fn main() -> Result<(), String> {
         get_char_size(matches.value_of("char_size").unwrap())?,
         get_parity(matches.value_of("parity").unwrap())?,
         get_stop_bits(matches.value_of("stop_bits").unwrap())?,
-        FlowControl::FlowNone,
+        get_flow_control(matches.value_of("flow_control").unwrap())?,
     )?;
 
     let file = File::open(file_path).map_err(|e| format!("Failed to open file: {}.", e))?;
