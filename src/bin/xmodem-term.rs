@@ -32,7 +32,14 @@ fn main() -> Result<(), String> {
     let device_path = matches.value_of("device").unwrap();
     let file_path = matches.value_of("file").unwrap();
 
-    let device = setup_device(device_path)?;
+    let device = setup_device(
+        device_path,
+        serial::BaudRate::Baud115200,
+        serial::CharSize::Bits8,
+        serial::Parity::ParityNone,
+        serial::StopBits::Stop1,
+        serial::FlowControl::FlowNone,
+    )?;
 
     let file = File::open(file_path).map_err(|e| format!("Failed to open file: {}.", e))?;
 
