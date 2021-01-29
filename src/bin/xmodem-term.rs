@@ -1,6 +1,25 @@
 use clap::clap_app;
 use std::fs::File;
 use xmodem_term::{device::setup_device, xmodem::XModem};
+use serial::{BaudRate, CharSize, FlowControl, Parity, StopBits};
+
+fn get_baud_rate(name: &str) -> Result<BaudRate, String> {
+    use BaudRate::*;
+    match name {
+        "110" => Ok(Baud110),
+        "300" => Ok(Baud300),
+        "600" => Ok(Baud600),
+        "1200" => Ok(Baud1200),
+        "2400" => Ok(Baud2400),
+        "4800" => Ok(Baud4800),
+        "9600" => Ok(Baud9600),
+        "19200" => Ok(Baud19200),
+        "38400" => Ok(Baud38400),
+        "57600" => Ok(Baud57600),
+        "115200" => Ok(Baud115200),
+        _ => Err(format!("Invalid baud rate of {}.", name)),
+    }
+}
 
 fn main() -> Result<(), String> {
     let matches = clap_app!(app =>
@@ -34,11 +53,11 @@ fn main() -> Result<(), String> {
 
     let device = setup_device(
         device_path,
-        serial::BaudRate::Baud115200,
-        serial::CharSize::Bits8,
-        serial::Parity::ParityNone,
-        serial::StopBits::Stop1,
-        serial::FlowControl::FlowNone,
+        get_baud_rate(matches.value_of("baud_rate").unwrap())?,
+        CharSize::Bits8,
+        Parity::ParityNone,
+        StopBits::Stop1,
+        FlowControl::FlowNone,
     )?;
 
     let file = File::open(file_path).map_err(|e| format!("Failed to open file: {}.", e))?;
