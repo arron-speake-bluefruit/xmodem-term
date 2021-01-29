@@ -21,6 +21,17 @@ fn get_baud_rate(name: &str) -> Result<BaudRate, String> {
     }
 }
 
+fn get_char_size(name: &str) -> Result<CharSize, String> {
+    use CharSize::*;
+    match name {
+        "5" => Ok(Bits5),
+        "6" => Ok(Bits6),
+        "7" => Ok(Bits7),
+        "8" => Ok(Bits8),
+        _ => Err(format!("Invalid char size of {}.", name)),
+    }
+}
+
 fn main() -> Result<(), String> {
     let matches = clap_app!(app =>
         (name: env!("CARGO_PKG_NAME"))
@@ -48,13 +59,15 @@ fn main() -> Result<(), String> {
     )
     .get_matches();
 
+    // Its okay to unwrap arguments as they're all either required or defaulted.
+
     let device_path = matches.value_of("device").unwrap();
     let file_path = matches.value_of("file").unwrap();
 
     let device = setup_device(
         device_path,
         get_baud_rate(matches.value_of("baud_rate").unwrap())?,
-        CharSize::Bits8,
+        get_char_size(matches.value_of("char_size").unwrap())?,
         Parity::ParityNone,
         StopBits::Stop1,
         FlowControl::FlowNone,
