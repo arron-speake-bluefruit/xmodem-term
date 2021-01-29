@@ -3,6 +3,8 @@ use std::fs::File;
 use xmodem_term::{device::setup_device, xmodem::XModem};
 use serial::{BaudRate, CharSize, FlowControl, Parity, StopBits};
 
+// TODO: Maybe macro_rules! these?
+
 fn get_baud_rate(name: &str) -> Result<BaudRate, String> {
     use BaudRate::*;
     match name {
@@ -39,6 +41,15 @@ fn get_parity(name: &str) -> Result<Parity, String> {
         "none" => Ok(ParityNone),
         "odd" => Ok(ParityOdd),
         _ => Err(format!("Invalid parity of {}.", name)),
+    }
+}
+
+fn get_stop_bits(name: &str) -> Result<StopBits, String> {
+    use StopBits::*;
+    match name {
+        "1" => Ok(Stop1),
+        "2" => Ok(Stop2),
+        _ => Err(format!("Invalid stop bits of {}.", name)),
     }
 }
 
@@ -79,7 +90,7 @@ fn main() -> Result<(), String> {
         get_baud_rate(matches.value_of("baud_rate").unwrap())?,
         get_char_size(matches.value_of("char_size").unwrap())?,
         get_parity(matches.value_of("parity").unwrap())?,
-        StopBits::Stop1,
+        get_stop_bits(matches.value_of("stop_bits").unwrap())?,
         FlowControl::FlowNone,
     )?;
 
