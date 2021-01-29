@@ -3,66 +3,6 @@ use std::fs::File;
 use xmodem_term::{device::setup_device, xmodem::XModem};
 use serial::{BaudRate, CharSize, FlowControl, Parity, StopBits};
 
-// TODO: Maybe macro_rules! these?
-
-fn get_baud_rate(name: String) -> Result<BaudRate, String> {
-    use BaudRate::*;
-    match name.as_ref() {
-        "110" => Ok(Baud110),
-        "300" => Ok(Baud300),
-        "600" => Ok(Baud600),
-        "1200" => Ok(Baud1200),
-        "2400" => Ok(Baud2400),
-        "4800" => Ok(Baud4800),
-        "9600" => Ok(Baud9600),
-        "19200" => Ok(Baud19200),
-        "38400" => Ok(Baud38400),
-        "57600" => Ok(Baud57600),
-        "115200" => Ok(Baud115200),
-        _ => Err(name),
-    }
-}
-
-fn get_char_size(name: String) -> Result<CharSize, String> {
-    use CharSize::*;
-    match name.as_ref() {
-        "5" => Ok(Bits5),
-        "6" => Ok(Bits6),
-        "7" => Ok(Bits7),
-        "8" => Ok(Bits8),
-        _ => Err(name),
-    }
-}
-
-fn get_parity(name: String) -> Result<Parity, String> {
-    use Parity::*;
-    match name.as_ref() {
-        "even" => Ok(ParityEven),
-        "none" => Ok(ParityNone),
-        "odd" => Ok(ParityOdd),
-        _ => Err(name),
-    }
-}
-
-fn get_stop_bits(name: String) -> Result<StopBits, String> {
-    use StopBits::*;
-    match name.as_ref() {
-        "1" => Ok(Stop1),
-        "2" => Ok(Stop2),
-        _ => Err(name),
-    }
-}
-
-fn get_flow_control(name: String) -> Result<FlowControl, String> {
-    use FlowControl::*;
-    match name.as_ref() {
-        "hardware" => Ok(FlowHardware),
-        "none" => Ok(FlowNone),
-        "software" => Ok(FlowSoftware),
-        _ => Err(name),
-    }
-}
-
 fn main() -> Result<(), String> {
     let matches = clap_app!(app =>
         (name: env!("CARGO_PKG_NAME"))
@@ -74,23 +14,24 @@ fn main() -> Result<(), String> {
         (@setting GlobalVersion)
         (@setting StrictUtf8)
         (@arg baud_rate: -b --baudrate +takes_value default_value("115200")
-            validator(|b| get_baud_rate(b).map(|_| ()))
+            possible_values(&[ "110", "300", "600", "1200", "2400",
+                "4800", "9600", "19200", "38400", "57600", "115200" ])
             "The Baud rate of the serial."
         )
         (@arg char_size: -c --charsize +takes_value default_value("8")
-            validator(|b| get_char_size(b).map(|_| ()))
+            possible_values(&[ "5", "6", "7", "8" ])
             "The number of bits per character."
         )
         (@arg parity: -p --parity +takes_value default_value("none")
-            validator(|b| get_parity(b).map(|_| ()))
+            possible_values(&[ "even", "odd", "none" ])
             "The parity checking mode."
         )
         (@arg stop_bits: -s --stopbits +takes_value default_value("1")
-            validator(|b| get_stop_bits(b).map(|_| ()))
+            possible_values(&[ "1", "2" ])
             "The number of stop bits transmitted after every character."
         )
         (@arg flow_control: -f --flowcontrol +takes_value default_value("none")
-            validator(|b| get_flow_control(b).map(|_| ()))
+            possible_values(&[ "software", "hardware", "none" ])
             "The serial flow control mode."
         )
         (@arg device: +required
@@ -107,20 +48,13 @@ fn main() -> Result<(), String> {
     let device_path = matches.value_of("device").unwrap();
     let file_path = matches.value_of("file").unwrap();
 
-    fn unwrap_argument_parser<T>(
-        arg: Option<&str>,
-        parser: fn(String) -> Result<T, String>,
-    ) -> T {
-        parser(arg.unwrap().to_owned()).unwrap()
-    }
-
     let device = setup_device(
         device_path,
-        unwrap_argument_parser(matches.value_of("baud_rate"),    get_baud_rate),
-        unwrap_argument_parser(matches.value_of("char_size"),    get_char_size),
-        unwrap_argument_parser(matches.value_of("parity"),       get_parity),
-        unwrap_argument_parser(matches.value_of("stop_bits"),    get_stop_bits),
-        unwrap_argument_parser(matches.value_of("flow_control"), get_flow_control),
+        arg_match_to_parser(&matches, "baud_rate",    get_baud_rate),
+        arg_match_to_parser(&matches, "char_size",    get_char_size),
+        arg_match_to_parser(&matches, "parity",       get_parity),
+        arg_match_to_parser(&matches, "stop_bits",    get_stop_bits),
+        arg_match_to_parser(&matches, "flow_control", get_flow_control),
     )?;
 
     let file = File::open(file_path).map_err(|e| format!("Failed to open file: {}.", e))?;
@@ -132,5 +66,73 @@ fn main() -> Result<(), String> {
             Ok(())
         }
         None => Err(String::from("The XModem transfer failed.")),
+    }
+}
+
+fn arg_match_to_parser<T>(
+    matches: &clap::ArgMatches,
+    arg: &str,
+    parser: fn(&str) -> T,
+) -> T {
+    parser(matches.value_of(arg).unwrap())
+}
+
+// TODO: Maybe macro_rules! these?
+
+fn get_baud_rate(name: &str) -> BaudRate {
+    use BaudRate::*;
+    match name {
+        "110" => Baud110,
+        "300" => Baud300,
+        "600" => Baud600,
+        "1200" => Baud1200,
+        "2400" => Baud2400,
+        "4800" => Baud4800,
+        "9600" => Baud9600,
+        "19200" => Baud19200,
+        "38400" => Baud38400,
+        "57600" => Baud57600,
+        "115200" => Baud115200,
+        _ => panic!(),
+    }
+}
+
+fn get_char_size(name: &str) -> CharSize {
+    use CharSize::*;
+    match name {
+        "5" => Bits5,
+        "6" => Bits6,
+        "7" => Bits7,
+        "8" => Bits8,
+        _ => panic!(),
+    }
+}
+
+fn get_parity(name: &str) -> Parity {
+    use Parity::*;
+    match name {
+        "even" => ParityEven,
+        "none" => ParityNone,
+        "odd" => ParityOdd,
+        _ => panic!(),
+    }
+}
+
+fn get_stop_bits(name: &str) -> StopBits {
+    use StopBits::*;
+    match name {
+        "1" => Stop1,
+        "2" => Stop2,
+        _ => panic!(),
+    }
+}
+
+fn get_flow_control(name: &str) -> FlowControl {
+    use FlowControl::*;
+    match name {
+        "hardware" => FlowHardware,
+        "none" => FlowNone,
+        "software" => FlowSoftware,
+        _ => panic!(),
     }
 }
