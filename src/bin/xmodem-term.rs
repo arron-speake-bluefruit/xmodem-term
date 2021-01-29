@@ -12,8 +12,20 @@ fn main() -> Result<(), String> {
         (@setting DisableHelpSubcommand)
         (@setting GlobalVersion)
         (@setting StrictUtf8)
-        (@arg device: +required "The device to use for xmodem transfer.")
-        (@arg file: +required "The file to be transferred.")
+        (@arg baud_rate: -b --baudrate +takes_value default_value("115200")
+            "The Baud rate of the serial.")
+        (@arg char_size: -c --charsize +takes_value default_value("8")
+            "The number of bits per character.")
+        (@arg parity: -p --parity +takes_value default_value("none")
+            "The parity checking mode.")
+        (@arg stop_bits: -s --stopbits +takes_value default_value("1")
+            "The number of stop bits transmitted after every character.")
+        (@arg flow_control: -f --flowcontrol +takes_value default_value("none")
+            "The serial flow control mode.")
+        (@arg device: +required
+            "The device to use for xmodem transfer.")
+        (@arg file: +required
+            "The file to be transferred.")
     )
     .get_matches();
 
