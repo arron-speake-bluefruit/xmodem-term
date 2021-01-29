@@ -2,7 +2,7 @@
 
 A simple xmodem transmission client.
 
-Currently this is hardcoded for use over a serial connection on a unix-like system with fixed configuration, so unless you modify it its unlikely to be useful.
+The serial connection can be set up using various options, see `--help` for more information.
 
 ## Building
 
