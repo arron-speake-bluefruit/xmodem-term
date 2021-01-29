@@ -1,7 +1,7 @@
 use clap::clap_app;
+use serial::{BaudRate, CharSize, FlowControl, Parity, StopBits};
 use std::fs::File;
 use xmodem_term::{device::setup_device, xmodem::XModem};
-use serial::{BaudRate, CharSize, FlowControl, Parity, StopBits};
 
 fn main() -> Result<(), String> {
     let matches = clap_app!(app =>
@@ -69,11 +69,7 @@ fn main() -> Result<(), String> {
     }
 }
 
-fn arg_match_to_parser<T>(
-    matches: &clap::ArgMatches,
-    arg: &str,
-    parser: fn(&str) -> T,
-) -> T {
+fn arg_match_to_parser<T>(matches: &clap::ArgMatches, arg: &str, parser: fn(&str) -> T) -> T {
     parser(matches.value_of(arg).unwrap())
 }
 

@@ -31,7 +31,7 @@ impl XModem {
                 }
             }
             progress.fail();
-            return None
+            return None;
         }
 
         progress.succeed();
@@ -39,18 +39,14 @@ impl XModem {
     }
 
     fn write(&mut self, packet: &Packet) -> Option<()> {
-        self.port
-            .write_all(packet.data())
-            .ok()
+        self.port.write_all(packet.data()).ok()
     }
 
     fn read(&mut self) -> Option<bool> {
         const ACKNOWLEDGE: u8 = 0x06;
         const NEGATIVE_ACKNOWLEDGE: u8 = 0x15;
         let mut read_buffer = [0u8; 1];
-        self.port
-            .read_exact(&mut read_buffer)
-            .ok()?;
+        self.port.read_exact(&mut read_buffer).ok()?;
         match read_buffer[0] {
             ACKNOWLEDGE => Some(true),
             NEGATIVE_ACKNOWLEDGE => Some(false),
@@ -87,12 +83,18 @@ struct ProgressOutput;
 impl ProgressOutput {
     pub fn new(start: &str) -> Self {
         Self::print(start);
-        Self { }
+        Self {}
     }
 
-    pub fn update(&self) { Self::print(".") }
-    pub fn succeed(self) { Self::print(" Done.\n") }
-    pub fn fail(self) { Self::print(" Failed.\n") }
+    pub fn update(&self) {
+        Self::print(".")
+    }
+    pub fn succeed(self) {
+        Self::print(" Done.\n")
+    }
+    pub fn fail(self) {
+        Self::print(" Failed.\n")
+    }
 
     fn print(content: &str) {
         print!("{}", content);
