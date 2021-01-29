@@ -32,6 +32,16 @@ fn get_char_size(name: &str) -> Result<CharSize, String> {
     }
 }
 
+fn get_parity(name: &str) -> Result<Parity, String> {
+    use Parity::*;
+    match name {
+        "even" => Ok(ParityEven),
+        "none" => Ok(ParityNone),
+        "odd" => Ok(ParityOdd),
+        _ => Err(format!("Invalid parity of {}.", name)),
+    }
+}
+
 fn main() -> Result<(), String> {
     let matches = clap_app!(app =>
         (name: env!("CARGO_PKG_NAME"))
@@ -68,7 +78,7 @@ fn main() -> Result<(), String> {
         device_path,
         get_baud_rate(matches.value_of("baud_rate").unwrap())?,
         get_char_size(matches.value_of("char_size").unwrap())?,
-        Parity::ParityNone,
+        get_parity(matches.value_of("parity").unwrap())?,
         StopBits::Stop1,
         FlowControl::FlowNone,
     )?;
